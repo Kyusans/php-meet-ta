@@ -22,6 +22,24 @@
             }
             return $returnValue;
         }
+
+        function getStudentInformation($json){
+            // {"studId":"02-2223-08840"}
+            include "connection.php";
+            $json = json_decode($json, true);
+            $sql = "SELECT * FROM tblstudents WHERE stud_schoolId = :studId";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':studId',$json['studId']);
+            $returnValue = 0;
+            $stmt->execute();
+            
+            if ($stmt->rowCount() > 0) {
+                $rs = $stmt->fetch(PDO::FETCH_ASSOC);
+                $returnValue = json_encode($rs);
+            }
+
+            return $returnValue;
+        }
     }//user
 
     function studentLogin($json){
@@ -49,6 +67,9 @@
     switch($operation){
         case "login":
             echo $user->login($json);
+            break;
+        case "getStudentInformation":
+            echo $user->getStudentInformation($json);
             break;
     }
 ?>
