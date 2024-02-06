@@ -67,6 +67,12 @@ function uploadImage()
     }
 }
 
+function getCurrentDate()
+{
+    $today = new DateTime("now", new DateTimeZone('Asia/Manila'));
+    return $today->format('Y-m-d H:i:s');
+}
+
 $json = isset($_POST["json"]) ? $_POST["json"] : "0";
 $operation = isset($_POST["operation"]) ? $_POST["operation"] : "0";
 
