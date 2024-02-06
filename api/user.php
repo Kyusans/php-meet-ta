@@ -30,6 +30,42 @@ function recordExists($value, $table, $column)
   return $count > 0;
 }
 
+function uploadImage()
+{
+    if (isset($_FILES["file"])) {
+        $file = $_FILES['file'];
+        // print_r($file);
+        $fileName = $_FILES['file']['name'];
+        $fileTmpName = $_FILES['file']['tmp_name'];
+        $fileSize = $_FILES['file']['size'];
+        $fileError = $_FILES['file']['error'];
+        // $fileType = $_FILES['file']['type'];
+
+        $fileExt = explode(".", $fileName);
+        $fileActualExt = strtolower(end($fileExt));
+
+        $allowed = array("jpg", "jpeg", "png");
+
+        if (in_array($fileActualExt, $allowed)) {
+            if ($fileError === 0) {
+                if ($fileSize < 25000000) {
+                    $fileNameNew = uniqid("", true) . "." . $fileActualExt;
+                    $fileDestination =  'images/' . $fileNameNew;
+                    move_uploaded_file($fileTmpName, $fileDestination);
+                    return $fileNameNew;
+                } else {
+                    return 4;
+                }
+            } else {
+                return 3;
+            }
+        } else {
+            return 2;
+        }
+    } else {
+        return "";
+    }
+}
 
 $json = isset($_POST["json"]) ? $_POST["json"] : "0";
 $operation = isset($_POST["operation"]) ? $_POST["operation"] : "0";
