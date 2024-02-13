@@ -5,6 +5,7 @@ class User
 {
   function signup($json)
   {
+    // {"username":"joe1","email":"joe1@gmailcom","password":"joejoejoe"}
     include "connection.php";
     $data = json_decode($json, true);
     if (recordExists($data["username"], "tbl_user", "user_username")) {
@@ -15,7 +16,7 @@ class User
 
     $image = "emptyImage.jpg";
     $date = getCurrentDate();
-    $sql = "INSERT INTO tbl_user(user_username, user_email, user_password, user_image, user_dateCreated) VALUES(:username, :email, :password, :image, :date)";
+    $sql = "INSERT INTO tbl_user(user_username, user_email, user_password, user_image, user_dateCreated, user_level) VALUES(:username, :email, :password, :image, :date, 10)";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(":username", $data["username"]);
     $stmt->bindParam(":email", $data["email"]);
@@ -28,16 +29,16 @@ class User
 
   function login($json)
   {
+    // {"username":"joe","password":"joejoejoe"}
     include "connection.php";
     $data = json_decode($json, true);
-    $sql = "SELECT * FROM tbl_user WHERE user_username = :username OR user_email = :email AND user_password = :password";
+    $sql = "SELECT * FROM tbl_user WHERE (user_username = :username OR user_email = :username) AND BINARY user_password = :password";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(":username", $data["username"]);
-    $stmt->bindParam(":email", $data["email"]);
     $stmt->bindParam(":password", $data["password"]);
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $result ? $result : 0;
+    return $result ? json_encode($result) : 0;
   }
 } //admin 
 
