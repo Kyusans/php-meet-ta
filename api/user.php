@@ -72,6 +72,21 @@
       $stmt->execute();
       return $stmt->rowCount() > 0 ? 1 : 0;
     }
+
+
+    function getProfile($json){
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "SELECT a.user_username, b.* 
+      FROM tbl_user as a 
+      INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
+      WHERE a.user_id = :userId";
+
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam("userId", $json["userId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
+    }
   } //user
 
   function recordExists($value, $table, $column)
@@ -158,5 +173,8 @@
       break;
     case "createPost":
       echo $user->createPost($json);
+      break;
+    case "getProfile":
+      echo $user->getProfile($json);
       break;
   }
