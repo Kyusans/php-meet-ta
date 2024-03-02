@@ -73,14 +73,14 @@
       return $stmt->rowCount() > 0 ? 1 : 0;
     }
 
-
     function getProfile($json){
       include "connection.php";
       $json = json_decode($json, true);
-      $sql = "SELECT a.user_username, b.* 
+      $sql = "SELECT a.user_username, a.user_image, b.* 
       FROM tbl_user as a 
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
-      WHERE a.user_id = :userId";
+      WHERE a.user_id = :userId 
+      ORDER BY post_dateCreated DESC";
 
       $stmt = $conn->prepare($sql);
       $stmt->bindParam("userId", $json["userId"]);
