@@ -80,7 +80,7 @@
       $sql = "SELECT a.user_username, a.user_image, b.* 
       FROM tbl_user as a 
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
-      WHERE a.user_id = :userId 
+      WHERE a.user_id = :userId AND b.post_status = 1
       ORDER BY post_dateCreated DESC";
 
       $stmt = $conn->prepare($sql);
