@@ -49,17 +49,17 @@
 
       $returnValueImage = uploadImage();
       switch ($returnValueImage) {
-          case 2:
-              // You cannot Upload files of this type!
-              return 2;
-          case 3:
-              // There was an error uploading your file!
-              return 3;
-          case 4:
-              // Your file is too big (25mb maximum)
-              return 4;
-          default:
-              break;
+        case 2:
+          // You cannot Upload files of this type!
+          return 2;
+        case 3:
+          // There was an error uploading your file!
+          return 3;
+        case 4:
+          // Your file is too big (25mb maximum)
+          return 4;
+        default:
+          break;
       }
       $sql = "INSERT INTO tbl_post(post_userId, post_title, post_description, post_image, post_dateCreated, post_status) 
     VALUES(:userId, :title, :description, :image, :date, 0)";
@@ -73,19 +73,30 @@
       return $stmt->rowCount() > 0 ? 1 : 0;
     }
 
-    function getProfile($json){
+    function getProfile($json)
+    {
       include "connection.php";
       $json = json_decode($json, true);
       $sql = "SELECT a.user_username, a.user_image, b.* 
       FROM tbl_user as a 
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
-      WHERE a.user_id = :userId 
+      WHERE a.user_id = :userId AND b.post_status = 1
       ORDER BY post_dateCreated DESC";
 
       $stmt = $conn->prepare($sql);
       $stmt->bindParam("userId", $json["userId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
+    }
+
+    function getUserDetails($json){
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "SELECT * FROM tbl_user WHERE user_id = :userId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam("userId", $json["userId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? json_encode($stmt->fetch(PDO::FETCH_ASSOC)) : 0;
     }
   } //user
 
@@ -176,5 +187,8 @@
       break;
     case "getProfile":
       echo $user->getProfile($json);
+      break;
+    case "getUserDetails":
+      echo $user->getUserDetails($json);
       break;
   }
