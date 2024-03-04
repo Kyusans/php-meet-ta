@@ -25,6 +25,16 @@ class Admin
     $stmt->execute();
     return $stmt->rowCount() > 0 ? 1 : 0;
   }
+
+  function rejectPost($json){
+    include "connection.php";
+    $json = json_decode($json, true);
+    $sql = "DELETE FROM tbl_post WHERE post_id = :postId";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(":postId", $json["postId"]);
+    $stmt->execute();
+    return $stmt->rowCount() > 0 ? 1 : 0;
+  }
 } //user
 
 
@@ -39,5 +49,8 @@ switch ($operation) {
     break;
   case "approvePost":
     echo $admin->approvePost($json);
+    break;
+  case "rejectPost":
+    echo $admin->rejectPost($json);
     break;
 }
