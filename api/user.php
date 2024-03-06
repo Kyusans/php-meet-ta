@@ -89,7 +89,8 @@
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
 
-    function getUserDetails($json){
+    function getUserDetails($json)
+    {
       include "connection.php";
       $json = json_decode($json, true);
       $sql = "SELECT * FROM tbl_user WHERE user_id = :userId";
@@ -97,6 +98,15 @@
       $stmt->bindParam("userId", $json["userId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetch(PDO::FETCH_ASSOC)) : 0;
+    }
+
+    function getApprovedPost()
+    {
+      include "connection.php";
+      $sql = "SELECT * FROM tbl_post WHERE post_status = 1";
+      $stmt = $conn->prepare($sql);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
   } //user
 
@@ -190,5 +200,8 @@
       break;
     case "getUserDetails":
       echo $user->getUserDetails($json);
+      break;
+    case "getApprovedPost":
+      echo $user->getApprovedPost();
       break;
   }
