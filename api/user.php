@@ -80,11 +80,11 @@
       $sql = "SELECT a.user_username, a.user_image, b.* 
       FROM tbl_user as a 
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
-      WHERE a.user_id = :userId AND b.post_status = 1
+      WHERE a.user_id = :userId AND b.post_status = 1 
       ORDER BY post_dateCreated DESC";
 
       $stmt = $conn->prepare($sql);
-      $stmt->bindParam("userId", $json["userId"]);
+      $stmt->bindParam(":userId", $json["userId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
@@ -103,10 +103,12 @@
     function getApprovedPost()
     {
       include "connection.php";
-      $sql = "SELECT a.user_username, a.user_image, b.* 
+      $sql = "SELECT a.user_username, a.user_image, b.*, COUNT(c.point_id) AS likes 
       FROM tbl_user as a 
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
+      LEFT JOIN tbl_points as c ON c.point_postId = b.post_id
       WHERE b.post_status = 1 
+      GROUP BY b.post_id
       ORDER BY b.post_dateCreated DESC";
       $stmt = $conn->prepare($sql);
       $stmt->execute();
@@ -117,21 +119,44 @@
     {
       include "connection.php";
       $json = json_decode($json, true);
-      $sql = "INSERT INTO tbl_points(point_postId, point_userId) 
-      VALUE(:postId, :userId)";
-      $stmt = $conn->prepare($sql);
-      $stmt->bindParam(":postId", $json["postId"]);
-      $stmt->bindParam(":userId", $json["userId"]);
-      $stmt->execute();
-      return $stmt->rowCount() > 0 ? 1 : 0;
+
+      $sql_check = "SELECT * FROM tbl_points WHERE point_postId = :postId AND point_userId = :userId";
+      $stmt_check = $conn->prepare($sql_check);
+      $stmt_check->bindParam(":postId", $json["postId"]);
+      $stmt_check->bindParam(":userId", $json["userId"]);
+      $stmt_check->execute();
+
+      if ($stmt_check->fetch()) {
+        // return "User already liked the post";
+        $sql1 = "DELETE FROM tbl_points WHERE point_postId = :postId AND point_userId = :userId";
+        $stmt1 = $conn->prepare($sql1);
+        $stmt1->bindParam(":postId", $json["postId"]);
+        $stmt1->bindParam(":userId", $json["userId"]);
+        $stmt1->execute();
+        return 5;
+      }
+
+      $sql_insert = "INSERT INTO tbl_points(point_postId, point_userId) VALUES (:postId, :userId)";
+      $stmt_insert = $conn->prepare($sql_insert);
+      $stmt_insert->bindParam(":postId", $json["postId"]);
+      $stmt_insert->bindParam(":userId", $json["userId"]);
+      $stmt_insert->execute();
+
+      return $stmt_insert->rowCount() > 0 ? 1 : 0;
     }
 
-    function getLikes($json){
+
+    function getLikes()
+    {
       include "connection.php";
-      $json = json_decode($json, true);
-      $sql = "SELECT COUNT(*) as Likes FROM tbl_points WHERE point_postId = :postId";
+      $sql = "SELECT a.user_username, a.user_image, b.*, COUNT(c.point_id) AS likes 
+      FROM tbl_user as a 
+      INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
+      LEFT JOIN tbl_points as c ON c.point_postId = b.post_id
+      WHERE b.post_status = 1 
+      GROUP BY b.post_id
+      ORDER BY b.post_dateCreated DESC";
       $stmt = $conn->prepare($sql);
-      $stmt->bindParam(":postId", $json["postId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
@@ -235,6 +260,6 @@
       echo $user->heartPost($json);
       break;
     case "getLikes":
-      echo $user->getLikes($json);
+      echo $user->getLikes();
       break;
   }

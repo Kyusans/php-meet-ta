@@ -6,11 +6,13 @@ class Admin
   function getPendingPost()
   {
     include "connection.php";
-    $sql = "SELECT a.user_username, a.user_image, b.* 
-      FROM tbl_user as a 
-      INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
-      WHERE b.post_status = 0 
-      ORDER BY b.post_dateCreated DESC";
+    $sql = "SELECT a.user_username, a.user_image, b.*, COUNT(c.point_id) AS likes 
+    FROM tbl_user as a 
+    INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
+    LEFT JOIN tbl_points as c ON c.point_postId = b.post_id 
+    WHERE b.post_status = 0 
+    GROUP BY b.post_id 
+    ORDER BY b.post_dateCreated DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
