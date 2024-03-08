@@ -117,13 +117,23 @@
     {
       include "connection.php";
       $json = json_decode($json, true);
-      $sql = "INSERT INTO tbl_points(points_postId, points_userId) 
+      $sql = "INSERT INTO tbl_points(point_postId, point_userId) 
       VALUE(:postId, :userId)";
       $stmt = $conn->prepare($sql);
       $stmt->bindParam(":postId", $json["postId"]);
       $stmt->bindParam(":userId", $json["userId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? 1 : 0;
+    }
+
+    function getLikes($json){
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "SELECT COUNT(*) as Likes FROM tbl_points WHERE point_postId = :postId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
   } //user
 
@@ -223,5 +233,8 @@
       break;
     case "heartPost":
       echo $user->heartPost($json);
+      break;
+    case "getLikes":
+      echo $user->getLikes($json);
       break;
   }
