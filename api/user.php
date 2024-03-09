@@ -160,6 +160,18 @@
       $stmt->execute();
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
+
+    function isUserLiked($json)
+    {
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "SELECT * FROM tbl_points WHERE point_postId = :postId AND point_userId = :userId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->bindParam(":userId", $json["userId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? 1 : 0;
+    }
   } //user
 
   function recordExists($value, $table, $column)
@@ -187,7 +199,7 @@
       $fileExt = explode(".", $fileName);
       $fileActualExt = strtolower(end($fileExt));
 
-      $allowed = array("jpg", "jpeg", "png");
+      $allowed = ["jpg", "jpeg", "png", "gif"];
 
       if (in_array($fileActualExt, $allowed)) {
         if ($fileError === 0) {
@@ -261,5 +273,8 @@
       break;
     case "getLikes":
       echo $user->getLikes();
+      break;
+    case "isUserLiked":
+      echo $user->isUserLiked($json);
       break;
   }
