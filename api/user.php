@@ -172,6 +172,16 @@
       $stmt->execute();
       return $stmt->rowCount() > 0 ? 1 : 0;
     }
+
+    function deletePost($json){
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "DELETE FROM tbl_post WHERE post_id = :postId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? 1 : 0;
+    }
   } //user
 
   function recordExists($value, $table, $column)
@@ -276,5 +286,8 @@
       break;
     case "isUserLiked":
       echo $user->isUserLiked($json);
+      break;
+    case "deletePost":
+      echo $user->deletePost($json);
       break;
   }
