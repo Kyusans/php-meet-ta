@@ -77,10 +77,12 @@
     {
       include "connection.php";
       $json = json_decode($json, true);
-      $sql = "SELECT a.user_username, a.user_image, b.* 
+      $sql = "SELECT a.user_username, a.user_image, b.*, COUNT(c.point_id) AS likes 
       FROM tbl_user as a 
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
+      LEFT JOIN tbl_points as c ON c.point_postId = b.post_id 
       WHERE a.user_id = :userId AND b.post_status = 1 
+      GROUP BY b.post_id 
       ORDER BY post_dateCreated DESC";
 
       $stmt = $conn->prepare($sql);
@@ -108,7 +110,7 @@
       INNER JOIN tbl_post as b ON a.user_id = b.post_userId 
       LEFT JOIN tbl_points as c ON c.point_postId = b.post_id
       WHERE b.post_status = 1 
-      GROUP BY b.post_id
+      GROUP BY b.post_id 
       ORDER BY b.post_dateCreated DESC";
       $stmt = $conn->prepare($sql);
       $stmt->execute();
@@ -168,6 +170,45 @@
       $sql = "SELECT * FROM tbl_points WHERE point_postId = :postId AND point_userId = :userId";
       $stmt = $conn->prepare($sql);
       $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->bindParam(":userId", $json["userId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? 1 : 0;
+    }
+
+    function deletePost($json)
+    {
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "DELETE FROM tbl_post WHERE post_id = :postId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? 1 : 0;
+    }
+
+    function updateProfilePicture($json)
+    {
+      include "connection.php";
+      $json = json_decode($json, true);
+      $returnValueImage = uploadImage();
+
+      switch ($returnValueImage) {
+        case 2:
+          // You cannot Upload files of this type!
+          return 2;
+        case 3:
+          // There was an error uploading your file!
+          return 3;
+        case 4:
+          // Your file is too big (25mb maximum)
+          return 4;
+        default:
+          break;
+      }
+
+      $sql = "UPDATE tbl_user SET user_image = :image WHERE user_id = :userId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":image", $returnValueImage);
       $stmt->bindParam(":userId", $json["userId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? 1 : 0;
@@ -276,5 +317,11 @@
       break;
     case "isUserLiked":
       echo $user->isUserLiked($json);
+      break;
+    case "deletePost":
+      echo $user->deletePost($json);
+      break;
+    case "updateProfilePicture":
+      echo $user->updateProfilePicture($json);
       break;
   }
