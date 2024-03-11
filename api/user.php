@@ -213,6 +213,16 @@
       $stmt->execute();
       return $stmt->rowCount() > 0 ? 1 : 0;
     }
+
+    function getComment($json){
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "SELECT * FROM tbl_comment WHERE com_postId = :postId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
+    }
   } //user
 
   function recordExists($value, $table, $column)
@@ -323,5 +333,8 @@
       break;
     case "updateProfilePicture":
       echo $user->updateProfilePicture($json);
+      break;
+    case "getComment":
+      echo $user->getComment($json);
       break;
   }
