@@ -214,14 +214,31 @@
       return $stmt->rowCount() > 0 ? 1 : 0;
     }
 
-    function getComment($json){
+    function getComment($json)
+    {
       include "connection.php";
       $json = json_decode($json, true);
-      $sql = "SELECT * FROM tbl_comment WHERE com_postId = :postId";
+      $sql = "SELECT a.*, b.user_username, b.user_image, b.user_dateCreated
+      FROM tbl_comment as a
+      INNER JOIN tbl_user as b ON b.user_id = a.com_userId
+      WHERE a.com_postId = :postId";
       $stmt = $conn->prepare($sql);
       $stmt->bindParam(":postId", $json["postId"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
+    }
+
+    function addComment($json)
+    {
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "INSERT INTO tbl_comment(com_userId, com_postId, com_comment) VALUES(:userId, :postId, :comment)";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":userId", $json["userId"]);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->bindParam(":comment", $json["comment"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? 1 : 0;
     }
   } //user
 
@@ -235,7 +252,6 @@
     $count = $stmt->fetchColumn();
     return $count > 0;
   }
-
   function uploadImage()
   {
     if (isset($_FILES["file"])) {
@@ -333,6 +349,9 @@
       break;
     case "updateProfilePicture":
       echo $user->updateProfilePicture($json);
+      break;
+    case "addComment":
+      echo $user->addComment($json);
       break;
     case "getComment":
       echo $user->getComment($json);
