@@ -232,13 +232,27 @@
     {
       include "connection.php";
       $json = json_decode($json, true);
-      $sql = "INSERT INTO tbl_comment(com_userId, com_postId, com_comment) VALUES(:userId, :postId, :comment)";
+      $sql = "INSERT INTO tbl_comment(com_userId, com_postId, com_commentText) VALUES(:userId, :postId, :comment)";
       $stmt = $conn->prepare($sql);
       $stmt->bindParam(":userId", $json["userId"]);
       $stmt->bindParam(":postId", $json["postId"]);
       $stmt->bindParam(":comment", $json["comment"]);
       $stmt->execute();
       return $stmt->rowCount() > 0 ? 1 : 0;
+    }
+
+    function getPostLikers($json)
+    {
+      include "connection.php";
+      $json = json_decode($json, true);
+      $sql = "SELECT a.user_username, a.user_image 
+      FROM tbl_user as a 
+      INNER JOIN tbl_points as b ON b.point_userId = a.user_id 
+      WHERE point_postId = :postId";
+      $stmt = $conn->prepare($sql);
+      $stmt->bindParam(":postId", $json["postId"]);
+      $stmt->execute();
+      return $stmt->rowCount() > 0 ? json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)) : 0;
     }
   } //user
 
@@ -355,5 +369,8 @@
       break;
     case "getComment":
       echo $user->getComment($json);
+      break;
+    case "getPostLikers":
+      echo $user->getPostLikers($json);
       break;
   }
